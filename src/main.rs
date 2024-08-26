@@ -19,28 +19,30 @@ fn train(text: &str) -> HashMap<(String, String), Vec<String>> {
 fn generate(chain: &HashMap<(String, String), Vec<String>>, length: usize) -> String {
     let mut rng = rand::thread_rng();
     let keys: Vec<&(String, String)> = chain.keys().collect();
-    let mut sentence: Vec<String> = vec![];
+    let mut generated_text: Vec<String> = vec![];
 
     if let Some(&start_pair) = keys.choose(&mut rng) {
-        sentence.push(start_pair.0.clone());
-        sentence.push(start_pair.1.clone());
+        generated_text.push(start_pair.0.clone());
+        generated_text.push(start_pair.1.clone());
 
-        while sentence.len() < length {
+        while generated_text.len() < length {
             let pair = (
-                sentence[sentence.len() - 2].clone(),
-                sentence[sentence.len() - 1].clone(),
+                generated_text[generated_text.len() - 2].clone(),
+                generated_text[generated_text.len() - 1].clone(),
             );
             if let Some(next_words) = chain.get(&pair) {
                 if let Some(next_word) = next_words.choose(&mut rng) {
-                    sentence.push(next_word.clone());
+                    generated_text.push(next_word.clone());
                 } else {
                     break;
                 }
+            } else {
+                break;
             }
         }
     }
 
-    sentence.join(" ")
+    generated_text.join(" ")
 }
 
 #[derive(Parser)]
@@ -51,9 +53,18 @@ struct Cli {
 
 fn main() {
     let cli = Cli::parse();
+    let max_text_length = cli.text.split_whitespace().count() * 2;
+
+    if cli.length > max_text_length {
+        eprintln!(
+            "Warning: Text length ({}) is too long for the input provided. \
+            Generating shorter text instead.",
+            cli.length
+        );
+    }
 
     let chain = train(&cli.text);
     let sentence = generate(&chain, cli.length);
 
-    println!("{}", sentence);
+    println!("Generated text: {}", sentence);
 }
