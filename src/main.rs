@@ -45,6 +45,14 @@ fn generate(chain: &HashMap<(String, String), Vec<String>>, length: usize) -> St
     generated_text.join(" ")
 }
 
+fn capitalize(s: &str) -> String {
+    let mut chars = s.chars();
+    match chars.next() {
+        None => String::new(),
+        Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+    }
+}
+
 #[derive(Parser)]
 struct Cli {
     text: String,
@@ -64,7 +72,7 @@ fn main() {
     }
 
     let chain = train(&cli.text);
-    let sentence = generate(&chain, cli.length);
+    let generated_text = generate(&chain, cli.length);
 
-    println!("Generated text: {}", sentence);
+    println!("Generated text: {}", capitalize(&generated_text));
 }
